@@ -17,15 +17,16 @@
       - "{{ persistent_data_path }}"
   register: portainer_docker
 
-# - name: "Debug return values from container"
-#   debug:
-#     msg: "{{ portainer_docker.container }}"
+- name: "Debug return values from container"
+  debug:
+    var: portainer_docker.container
+  verbosity: 2
 
 - set_fact:
     portainer_is_running: "{{ portainer_docker.container.State.Running }}"
 
 - set_fact:
-    portainer_endpoint: "http://{{ portainer_docker.container.NetworkSettings.IPAddress }}:{{ host_port }}/api"
+    portainer_endpoint: "http://{{ portainer_docker.container.NetworkSettings.IPAddress | default('127.0.0.1') }}:{{ host_port }}/api"
 
 - name: "Check!!!"
   debug:
@@ -38,7 +39,7 @@
 
 - name: Wait for Portainer web interface to get available
   uri:
-    url: "http://{{ portainer_docker.container.NetworkSettings.IPAddress }}:{{ host_port }}"
+    url: "http://{{ portainer_docker.container.NetworkSettings.IPAddress | default('127.0.0.1') }}:{{ host_port }}"
     method: GET
   register: wait_portainer_result
   until: wait_portainer_result is succeeded
